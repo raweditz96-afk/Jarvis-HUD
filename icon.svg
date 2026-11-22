@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <rect width="512" height="512" rx="110" fill="#02090e"/>
+  <circle cx="256" cy="256" r="190" fill="none" stroke="#00d8ff" stroke-width="10" stroke-dasharray="90 45 30 45"/>
+  <circle cx="256" cy="256" r="145" fill="none" stroke="#5ce6ff" stroke-width="5" stroke-dasharray="10 14"/>
+  <circle cx="256" cy="256" r="105" fill="#062433" stroke="#7af2ff" stroke-width="8"/>
+  <text x="256" y="268" text-anchor="middle" fill="#7af2ff" font-family="monospace" font-weight="bold" font-size="34" letter-spacing="4">JARVIS</text>
+</svg>

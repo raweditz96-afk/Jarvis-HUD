@@ -1,0 +1,18 @@
+{
+  "name": "J.A.R.V.I.S Tactical HUD",
+  "short_name": "J.A.R.V.I.S",
+  "description": "Stark-style personal voice assistant HUD with Gmail, Contacts, and Gemini AI.",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#02090e",
+  "theme_color": "#02090e",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
