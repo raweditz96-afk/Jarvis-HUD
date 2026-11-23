@@ -1,5 +1,22 @@
 /* J.A.R.V.I.S — PWA App Ready, Gmail & Google Contacts OAuth, Audio FX & Direct Gemini AI */
 "use strict";
+/* Block ?expires= guest links once their timestamp passes */
+(function checkGuestPass() {
+  const params = new URLSearchParams(window.location.search);
+  const expiresAt = Number(params.get("expires"));
+  if (expiresAt && Date.now() > expiresAt) {
+    document.addEventListener("DOMContentLoaded", () => {
+      document.body.innerHTML = `
+        <div style="display:flex;height:100vh;align-items:center;justify-content:center;background:#02090e;color:#00d8ff;font-family:monospace;text-align:center;padding:24px;">
+          <div>
+            <h2 style="letter-spacing:4px;">ACCESS EXPIRED</h2>
+            <p style="color:#4b9cb3;">Temporary J.A.R.V.I.S. tactical pass has terminated.</p>
+          </div>
+        </div>`;
+    });
+    throw new Error("Guest pass expired");
+  }
+})();
 
 const $ = (selector) => document.querySelector(selector);
 const statusEl = $("#status");
@@ -860,6 +877,23 @@ function tryCalculate(command) {
    ========================================================= */
 async function processCommand(command) {
   const compactCommand = command.replace(/[\s-]+/g, "");
+     /* Generate & Copy 1-Hour Expiring Guest Link */
+  if (command.includes("guest link") || command.includes("share link") || command.includes("temporary link")) {
+    const expiryTime = Date.now() + 3600000;
+    const baseUrl = window.location.origin + window.location.pathname;
+    const guestUrl = `${baseUrl}?expires=${expiryTime}`;
+
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      navigator.clipboard.writeText(guestUrl).then(() => {
+        speak("One-hour guest link generated and copied to your clipboard, sir.");
+      }).catch(() => {
+        window.prompt("Copy your 1-hour guest link:", guestUrl);
+      });
+    } else {
+      window.prompt("Copy your 1-hour guest link:", guestUrl);
+    }
+    return;
+  }
 
   /* Sleep / Screen Standby Command (Top Priority) */
   if (
