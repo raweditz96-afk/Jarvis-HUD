@@ -870,16 +870,7 @@ async function processCommand(command) {
     return;
   }
 
-  /* Restore Standard Tactical Blue UI */
-  if (command.includes("deactivate code") || command.includes("reset color") || command.includes("normal mode") || command.includes("blue mode")) {
-    applyNormalUI();
-    playHudSound("activate");
-    vibrate(40);
-    speak("Override terminated. Standard tactical interface restored, sir.");
-    return;
-  }
-
-  /* Stealth / House Party Protocol */
+     /* Stealth / House Party Protocol */
   if (command.includes("stealth mode") || command.includes("house party protocol")) {
     document.body.classList.add("stealth-mode");
     if ($("#modeBadge")) $("#modeBadge").textContent = "STEALTH // LOW_VIS";
@@ -898,11 +889,40 @@ async function processCommand(command) {
     return;
   }
 
+  /* Sleep / Screen Standby Command (Paste Here) */
+  if (
+    command === "sleep" ||
+    command.includes("go to sleep") ||
+    command.includes("sleep mode") ||
+    command.includes("lock screen") ||
+    command.includes("sleep phone")
+  ) {
+    releaseWakeLock();
+    stopHackStream();
+    document.body.classList.add("stealth-mode", "paused");
+    if ($("#modeBadge")) $("#modeBadge").textContent = "SLEEP // STANDBY";
+    statusEl.textContent = "● SLEEP MODE";
+    speak("Releasing display wake lock and entering sleep standby, sir. Your screen will power down shortly.");
+    return;
+  }
+
   /* Google Account OAuth, Gmail & Contacts Commands */
   if (command.includes("connect google") || command.includes("sign in google") || command.includes("link google")) {
     connectGoogleAccount();
     return;
   }
+     /* Disconnect Google Account Locally (Paste right below connect google) */
+  if (command.includes("disconnect google") || command.includes("sign out google") || command.includes("unlink google")) {
+    if (googleAccessToken && window.google && google.accounts && google.accounts.oauth2) {
+      google.accounts.oauth2.revoke(googleAccessToken, () => {});
+    }
+    googleAccessToken = null;
+    googleTokenExpiry = 0;
+    localStorage.removeItem("jarvisGoogleClientId");
+    speak("Google account disconnected from J.A.R.V.I.S., sir.");
+    return;
+  }
+
   if (command.includes("set google client") || command.includes("set client id")) {
     const id = window.prompt("Paste your Google Cloud OAuth 2.0 Web Client ID:");
     if (id && id.trim()) {
