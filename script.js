@@ -861,6 +861,25 @@ function tryCalculate(command) {
 async function processCommand(command) {
   const compactCommand = command.replace(/[\s-]+/g, "");
 
+  /* Sleep / Screen Standby Command (Top Priority) */
+  if (
+    command === "sleep" ||
+    command.includes("go to sleep") ||
+    command.includes("sleep mode") ||
+    command.includes("lock screen") ||
+    command.includes("lock my phone") ||
+    command.includes("sleep phone")
+  ) {
+    releaseWakeLock();
+    stopHackStream();
+    document.body.classList.add("stealth-mode", "paused");
+    if ($("#modeBadge")) $("#modeBadge").textContent = "SLEEP // STANDBY";
+    statusEl.textContent = "● SLEEP MODE";
+    speak("Display wake lock released, sir. Entering low-power standby until your screen times out.");
+    return;
+  }
+
+
   /* Security Override Code -> Cyber-Hacker Terminal UI */
   if (compactCommand.includes("activatecode11062010")) {
     applyHackUI();
