@@ -1,20 +1,30 @@
 /* J.A.R.V.I.S — PWA App Ready, Gmail & Google Contacts OAuth, Audio FX & Direct Gemini AI */
 "use strict";
 /* Block ?expires= guest links once their timestamp passes */
+/* Starts a 1-hour countdown in the visitor's browser the first time they open ?guest=1 */
 (function checkGuestPass() {
   const params = new URLSearchParams(window.location.search);
-  const expiresAt = Number(params.get("expires"));
-  if (expiresAt && Date.now() > expiresAt) {
+  if (params.get("guest") !== "1") return;
+
+  const storageKey = "jarvisGuestFirstOpen";
+  let firstOpen = Number(localStorage.getItem(storageKey));
+
+  if (!firstOpen) {
+    firstOpen = Date.now();
+    localStorage.setItem(storageKey, String(firstOpen));
+  }
+
+  if (Date.now() - firstOpen > 3600000) {
     document.addEventListener("DOMContentLoaded", () => {
       document.body.innerHTML = `
         <div style="display:flex;height:100vh;align-items:center;justify-content:center;background:#02090e;color:#00d8ff;font-family:monospace;text-align:center;padding:24px;">
           <div>
             <h2 style="letter-spacing:4px;">ACCESS EXPIRED</h2>
-            <p style="color:#4b9cb3;">Temporary J.A.R.V.I.S. tactical pass has terminated.</p>
+            <p style="color:#4b9cb3;">Your 1-hour J.A.R.V.I.S. trial session has ended.</p>
           </div>
         </div>`;
     });
-    throw new Error("Guest pass expired");
+    throw new Error("Guest session expired");
   }
 })();
 
