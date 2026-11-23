@@ -2,30 +2,61 @@
 "use strict";
 /* Block ?expires= guest links once their timestamp passes */
 /* Starts a 1-hour countdown in the visitor's browser the first time they open ?guest=1 */
+
+/* J.A.R.V.I.S. Guest Trial System */
 (function checkGuestPass() {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("guest") !== "1") return;
+    const params = new URLSearchParams(location.search);
 
-  const storageKey = "jarvisGuestFirstOpen";
-  let firstOpen = Number(localStorage.getItem(storageKey));
+    if (params.get("guest") !== "1") return;
 
-  if (!firstOpen) {
-    firstOpen = Date.now();
-    localStorage.setItem(storageKey, String(firstOpen));
-  }
+    const storageKey = "jarvisGuestFirstOpen";
+    const duration = 60 * 60 * 1000;
 
-  if (Date.now() - firstOpen > 3600000) {
-    document.addEventListener("DOMContentLoaded", () => {
-      document.body.innerHTML = `
-        <div style="display:flex;height:100vh;align-items:center;justify-content:center;background:#02090e;color:#00d8ff;font-family:monospace;text-align:center;padding:24px;">
-          <div>
-            <h2 style="letter-spacing:4px;">ACCESS EXPIRED</h2>
-            <p style="color:#4b9cb3;">Your 1-hour J.A.R.V.I.S. trial session has ended.</p>
-          </div>
-        </div>`;
-    });
-    throw new Error("Guest session expired");
-  }
+    let firstOpen = Number(localStorage.getItem(storageKey));
+
+    if (!Number.isFinite(firstOpen) || firstOpen <= 0) {
+        firstOpen = Date.now();
+        localStorage.setItem(storageKey, firstOpen);
+    }
+
+    if (Date.now() - firstOpen >= duration) {
+        const showExpired = () => {
+            document.body.innerHTML = `
+                <div style="
+                    display:flex;
+                    height:100vh;
+                    align-items:center;
+                    justify-content:center;
+                    background:#02090e;
+                    color:#00d8ff;
+                    font-family:monospace;
+                    text-align:center;
+                    padding:24px;
+                ">
+                    <div>
+                        <h2 style="letter-spacing:4px;">
+                            ACCESS EXPIRED
+                        </h2>
+                        <p style="color:#4b9cb3;">
+                            Your 1-hour J.A.R.V.I.S. trial session has ended.
+                        </p>
+                    </div>
+                </div>
+            `;
+        };
+
+        if (document.readyState === "loading") {
+            document.addEventListener(
+                "DOMContentLoaded",
+                showExpired,
+                { once: true }
+            );
+        } else {
+            showExpired();
+        }
+
+        return;
+    }
 })();
 
 const $ = (selector) => document.querySelector(selector);
