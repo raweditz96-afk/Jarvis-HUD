@@ -191,8 +191,8 @@ function renderVisualizerFrame() {
   const active = isListeningNow || isSpeakingNow || isScanningNow;
 
   const primaryColor = getComputedStyle(document.body).getPropertyValue("--primary").trim() || "#00d8ff";
-  const barCount = 24;
-  const gap = 4;
+  const barCount = 16;
+  const gap = 3;
   const barWidth = (w - gap * (barCount - 1)) / barCount;
 
   visPhase += active ? 0.22 : 0.04;
