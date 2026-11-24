@@ -74,74 +74,142 @@ if ("serviceWorker" in navigator && window.location.protocol.startsWith("http"))
 }
 
 /* =========================================================
-   1. Synthesized Sci-Fi Audio FX (Synchronous Gesture Unlock)
+   1. Synthesized Sci-Fi Audio FX (JarvisAudio Engine)
    ========================================================= */
-let audioCtx = null;
+class JarvisAudio {
+  constructor() {
+    this.ctx = null;
+    this.muted = false;
+  }
 
-function getAudioContext() {
-  const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-  if (!AudioContextClass) return null;
-  if (!audioCtx) {
-    try {
-      audioCtx = new AudioContextClass();
-    } catch {
-      return null;
+  // Must be triggered from a user gesture (click/tap/mic button)
+  init() {
+    if (!this.ctx) {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      if (!AudioCtx) return;
+      this.ctx = new AudioCtx();
+    }
+    if (this.ctx && this.ctx.state === "suspended") {
+      this.ctx.resume().catch(() => {});
     }
   }
-  if (audioCtx.state === "suspended") {
-    audioCtx.resume().catch(() => {});
+
+  // 1. Tactical HUD Click (Crisp, high-tech metallic blip)
+  playHudClick() {
+    if (this.muted || document.body.classList.contains("stealth-mode")) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+
+    osc.type = "sine";
+    osc.frequency.setValueAtTime(1400, now);
+    osc.frequency.exponentialRampToValueAtTime(420, now + 0.045);
+
+    gain.gain.setValueAtTime(0.15, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.045);
+
+    osc.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.05);
   }
-  return audioCtx;
+
+  // 2. Voice Recognition Activated (Ascending dual-tone chime)
+  playMicEngage() {
+    if (this.muted || document.body.classList.contains("stealth-mode")) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    [587.33, 880].forEach((freq, i) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const start = now + i * 0.07;
+
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(freq, start);
+
+      gain.gain.setValueAtTime(0.001, start);
+      gain.gain.linearRampToValueAtTime(0.14, start + 0.015);
+      gain.gain.exponentialRampToValueAtTime(0.001, start + 0.16);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(start);
+      osc.stop(start + 0.17);
+    });
+  }
+
+  // 3. Theme Switch Sweep (HUD <-> Cyber-Hacker Terminal)
+  playThemeSwitch(toTerminal = true) {
+    if (this.muted || document.body.classList.contains("stealth-mode")) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    const osc = this.ctx.createOscillator();
+    const filter = this.ctx.createBiquadFilter();
+    const gain = this.ctx.createGain();
+
+    osc.type = toTerminal ? "sawtooth" : "sine";
+    osc.frequency.setValueAtTime(toTerminal ? 900 : 220, now);
+    osc.frequency.exponentialRampToValueAtTime(toTerminal ? 180 : 880, now + 0.25);
+
+    filter.type = "lowpass";
+    filter.frequency.setValueAtTime(1800, now);
+
+    gain.gain.setValueAtTime(0.12, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.26);
+
+    osc.connect(filter);
+    filter.connect(gain);
+    gain.connect(this.ctx.destination);
+
+    osc.start(now);
+    osc.stop(now + 0.27);
+  }
+
+  // 4. Arc Reactor Power-Up (Harmonic low-end swell)
+  playBootSequence() {
+    if (this.muted || document.body.classList.contains("stealth-mode")) return;
+    this.init();
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+
+    [110, 164.81, 220].forEach((freq) => {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+
+      osc.type = "sine";
+      osc.frequency.setValueAtTime(freq * 0.85, now);
+      osc.frequency.exponentialRampToValueAtTime(freq, now + 0.6);
+
+      gain.gain.setValueAtTime(0.001, now);
+      gain.gain.linearRampToValueAtTime(0.08, now + 0.25);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.9);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+
+      osc.start(now);
+      osc.stop(now + 0.95);
+    });
+  }
 }
 
+const sfx = new JarvisAudio();
+
+/* Keeps existing diagnostics, scan & timer calls working */
 function playHudSound(type) {
-  if (document.body.classList.contains("stealth-mode")) return;
-  const ctx = getAudioContext();
-  if (!ctx) return;
-
-  try {
-    const now = ctx.currentTime + 0.02;
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-
-    if (type === "activate") {
-      osc.type = "sine";
-      osc.frequency.setValueAtTime(540, now);
-      osc.frequency.exponentialRampToValueAtTime(1040, now + 0.14);
-      gain.gain.setValueAtTime(0.28, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.16);
-      osc.start(now);
-      osc.stop(now + 0.17);
-    } else if (type === "override") {
-      osc.type = "sawtooth";
-      osc.frequency.setValueAtTime(190, now);
-      osc.frequency.linearRampToValueAtTime(115, now + 0.18);
-      osc.frequency.linearRampToValueAtTime(260, now + 0.36);
-      gain.gain.setValueAtTime(0.28, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.4);
-      osc.start(now);
-      osc.stop(now + 0.42);
-    } else if (type === "scan") {
-      osc.type = "triangle";
-      osc.frequency.setValueAtTime(360, now);
-      osc.frequency.exponentialRampToValueAtTime(920, now + 0.34);
-      gain.gain.setValueAtTime(0.25, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.38);
-      osc.start(now);
-      osc.stop(now + 0.4);
-    } else if (type === "alarm") {
-      osc.type = "square";
-      osc.frequency.setValueAtTime(880, now);
-      osc.frequency.setValueAtTime(660, now + 0.15);
-      osc.frequency.setValueAtTime(880, now + 0.3);
-      gain.gain.setValueAtTime(0.26, now);
-      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.48);
-      osc.start(now);
-      osc.stop(now + 0.5);
-    }
-  } catch {}
+  if (type === "activate") sfx.playMicEngage();
+  else if (type === "override") sfx.playThemeSwitch(true);
+  else if (type === "scan") sfx.playBootSequence();
+  else sfx.playHudClick();
 }
 
 /* =========================================================
@@ -958,7 +1026,7 @@ async function processCommand(command) {
   /* Security Override Code -> Cyber-Hacker Terminal UI */
   if (compactCommand.includes("activatecode11062010")) {
     applyHackUI();
-    playHudSound("override");
+    sfx.playThemeSwitch(true);
     vibrate([60, 40, 120]);
     speak("Code 11062010 accepted. Root override protocol engaged, sir.");
     return;
@@ -978,7 +1046,7 @@ async function processCommand(command) {
         ? "OVERRIDE // ROOT_11062010"
         : "MARK-VII // STANDBY";
     }
-    playHudSound("activate");
+    sfx.playThemeSwitch(false);
     speak("Full HUD power restored, sir.");
     return;
   }
@@ -1306,6 +1374,7 @@ function resetVoiceState() {
 }
 
 function promptManualCommand() {
+    sfx.playHudClick();
   const typed = window.prompt("Enter J.A.R.V.I.S. command:");
   if (typed && typed.trim()) {
     const clean = typed.toLowerCase().trim();
@@ -1317,8 +1386,7 @@ function promptManualCommand() {
 
 function startJarvis() {
   vibrate(45);
-  playHudSound("activate");
-
+  sfx.playMicEngage();
   const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
 
   if (!SpeechRecognition) {
