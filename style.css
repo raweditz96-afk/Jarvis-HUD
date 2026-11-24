@@ -101,27 +101,31 @@ body.hack-mode {
 .hud-frame .bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
 .hud-frame .br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
 
-/* Top Telemetry Bar */
+/* Top Telemetry Bar (Fits narrow mobile screens cleanly) */
 .telemetry-bar {
   display: flex;
   flex-wrap: nowrap;
   justify-content: space-between;
   align-items: center;
-  gap: 6px;
-  padding: 14px 16px 6px;
-  font-size: 9px;
-  letter-spacing: 0.9px;
+  gap: 4px;
+  padding: 12px 14px 6px;
+  font-size: clamp(7.5px, 2.2vw, 9px);
+  letter-spacing: 0.4px;
   color: var(--text-muted);
   white-space: nowrap;
+  overflow: hidden;
 }
 
 .telemetry-bar .badge {
-  padding: 3px 7px;
+  padding: 2px 5px;
   border: 1px solid var(--primary-dim);
   border-radius: 3px;
   color: var(--primary);
   background: var(--glow-soft);
-  flex-shrink: 0;
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-shadow: 0 0 6px var(--glow-soft);
 }
 
@@ -138,7 +142,7 @@ body.hack-mode .telemetry-bar .badge {
 }
 
 .telemetry-right .sep {
-  margin: 0 4px;
+  margin: 0 3px;
   opacity: 0.4;
 }
 
@@ -336,18 +340,18 @@ body.booting .core {
 .core.speaking .svg-ring-outer { animation-duration: 3.8s; }
 .core.speaking .svg-ring-inner { animation-duration: 2.2s; }
 
-/* Live Audio Frequency Visualizer Canvas */
+/* Compact Live Audio Frequency Visualizer Canvas */
 .visualizer-wrap {
   display: flex;
   justify-content: center;
   align-items: center;
-  height: 36px;
+  height: 20px;
   margin: 2px auto 10px;
 }
 
 #audioVisualizer {
-  width: 260px;
-  height: 36px;
+  width: 140px;
+  height: 20px;
   display: block;
 }
 
