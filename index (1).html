@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#02090e" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <title>J.A.R.V.I.S // MARK-VII HUD</title>
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="icon.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body class="booting">
+  <!-- Subtle Holographic Scanline Overlay -->
+  <div class="hud-scanlines" aria-hidden="true"></div>
+
+  <!-- Viewport Corner HUD Brackets -->
+  <div class="hud-frame" aria-hidden="true">
+    <span class="corner tl"></span>
+    <span class="corner tr"></span>
+    <span class="corner bl"></span>
+    <span class="corner br"></span>
+  </div>
+
+  <!-- Top Telemetry Bar -->
+  <div class="telemetry-bar">
+    <span id="modeBadge" class="badge">MARK-VII // STANDBY</span>
+    <span class="telemetry-right">
+      <span id="glinkStatus">G-LINK: OFF</span>
+      <span class="sep">|</span>
+      <span id="netStatus">NET: ONLINE</span>
+      <span class="sep">|</span>
+      <span id="battStatus">PWR: --%</span>
+    </span>
+  </div>
+
+  <header>
+    <div class="header-sub" id="headerSub">STARK INDUSTRIES // NEURAL TACTICAL SYSTEM</div>
+    <h1 id="hudTitle" data-text="J.A.R.V.I.S">J.A.R.V.I.S</h1>
+  </header>
+
+  <main>
+    <div class="status-cluster">
+      <div id="status" class="status">● SYSTEM ONLINE</div>
+      <div id="clock" class="clock">00:00:00</div>
+      <div id="countdownDisplay" class="countdown-display" aria-live="polite"></div>
+    </div>
+
+    <!-- High-Precision SVG Mark-VII Tactical Arc Reactor Core -->
+    <div id="core" class="core" role="button" tabindex="0" aria-label="Activate J.A.R.V.I.S. Voice Recognition">
+      <svg class="hud-svg" viewBox="0 0 280 280" aria-hidden="true">
+        <defs>
+          <radialGradient id="coreGlowGrad" cx="50%" cy="50%" r="50%">
+            <stop offset="0%" stop-color="currentColor" stop-opacity="0.28" />
+            <stop offset="65%" stop-color="currentColor" stop-opacity="0.06" />
+            <stop offset="100%" stop-color="currentColor" stop-opacity="0" />
+          </radialGradient>
+        </defs>
+
+        <!-- Ambient Core Aura -->
+        <circle cx="140" cy="140" r="134" fill="url(#coreGlowGrad)" />
+
+        <!-- Cardinal Targeting Crosshairs -->
+        <g stroke="currentColor" stroke-width="1" opacity="0.45">
+          <line x1="140" y1="2" x2="140" y2="14" />
+          <line x1="140" y1="266" x2="140" y2="278" />
+          <line x1="2" y1="140" x2="14" y2="140" />
+          <line x1="266" y1="140" x2="278" y2="140" />
+          <polygon points="140,16 136,10 144,10" fill="currentColor" />
+          <polygon points="140,264 136,270 144,270" fill="currentColor" />
+        </g>
+
+        <!-- Outer Degree Calibration Ring -->
+        <g class="svg-ring-outer">
+          <circle cx="140" cy="140" r="126" fill="none" stroke="currentColor" stroke-width="1"
+                  stroke-dasharray="2 9" opacity="0.45" />
+          <circle cx="140" cy="140" r="121" fill="none" stroke="currentColor" stroke-width="4.5"
+                  stroke-dasharray="52 46 16 58 44 74 20 46" stroke-linecap="butt" opacity="0.92" />
+          <circle cx="140" cy="140" r="113" fill="none" stroke="currentColor" stroke-width="1.8"
+                  stroke-dasharray="3 6" opacity="0.6" />
+        </g>
+
+        <!-- Mid Counter-Rotating Segmented Ring -->
+        <g class="svg-ring-mid">
+          <circle cx="140" cy="140" r="100" fill="none" stroke="currentColor" stroke-width="1.4"
+                  stroke-dasharray="74 32 14 32 88 42" opacity="0.65" />
+          <circle cx="140" cy="140" r="90" fill="none" stroke="currentColor" stroke-width="6"
+                  stroke-dasharray="3 3 3 3 3 3 3 3 3 3 3 3 3 3 3 500"
+                  transform="rotate(148 140 140)" opacity="0.88" />
+          <g fill="none" stroke="currentColor" stroke-width="1.4" opacity="0.85">
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(12 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(22 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(32 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(42 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(52 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(62 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(72 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(82 140 140)" />
+
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(162 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(172 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(182 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(192 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(202 140 140)" />
+            <rect x="137.5" y="42" width="5" height="9" rx="2.5" transform="rotate(212 140 140)" />
+          </g>
+        </g>
+
+        <!-- Inner High-Speed Core Containment Ring -->
+        <g class="svg-ring-inner">
+          <circle cx="140" cy="140" r="76" fill="none" stroke="currentColor" stroke-width="1" opacity="0.6" />
+          <circle cx="140" cy="140" r="72" fill="none" stroke="currentColor" stroke-width="3.5"
+                  stroke-dasharray="1.5 4.5" opacity="0.8" />
+          <circle cx="140" cy="140" r="61" fill="none" stroke="currentColor" stroke-width="4"
+                  stroke-dasharray="92 12 92 12 92 12 68 12" stroke-linecap="round" />
+        </g>
+      </svg>
+
+      <!-- Centered Arc Reactor Nucleus -->
+      <div class="inner">
+        <span id="coreLabel">J.A.R.V.I.S</span>
+        <span class="core-sub" id="coreSub">TAP TO ENGAGE</span>
+      </div>
+    </div>
+
+    <!-- Compact Real-Time Audio Frequency / Oscilloscope Visualizer -->
+    <div class="visualizer-wrap" aria-hidden="true">
+      <canvas id="audioVisualizer" width="140" height="20"></canvas>
+    </div>
+
+    <!-- Interactive Cyber-Ops Root Terminal (Visible in Hack Mode) -->
+    <section id="hackTerminal" class="hack-terminal" aria-label="Root Cyber-Ops Terminal">
+      <div class="term-topbar">
+        <span class="term-title">[ ROOT@JARVIS:~# CYBER_OPS_TERMINAL ]</span>
+        <span id="traceBadge" class="trace-badge">PROXY: MASKED</span>
+      </div>
+
+      <!-- Counter-Trace Intrusion Alert Banner -->
+      <div id="traceAlert" class="trace-alert" role="alert">
+        <span>⚠ COUNTER-TRACE DETECTED // SAY OR TYPE "KILL TRACE" (<span id="traceCountdown">15</span>s)</span>
+      </div>
+
+      <div id="termOutput" class="term-output"></div>
+
+      <form id="termForm" class="term-form" autocomplete="off">
+        <span class="term-prompt">root@jarvis:~#</span>
+        <input id="termInput" type="text" placeholder="Type help, recon, trace, decrypt, brute, spoof..." aria-label="Root Terminal Input" />
+        <button type="submit" class="term-run">RUN</button>
+      </form>
+    </section>
+
+    <!-- Holographic Terminal Feed + Inline Command Console -->
+    <section class="panel" aria-live="polite">
+      <div class="panel-header">
+        <div class="panel-title-wrap">
+          <span class="panel-dot"></span>
+          <h2 id="panelTitle">COMMUNICATION LOG</h2>
+        </div>
+        <span id="voiceStatus" class="voice-tag">STANDBY</span>
+      </div>
+
+      <div id="logHistory" class="log-history">
+        <p class="log-line">
+          <span class="prompt" id="userPrompt">USR &gt;</span>
+          <span id="heard">Awaiting voice input...</span>
+        </p>
+        <p class="log-line response-line" id="responseLine" title="Tap to copy response">
+          <span class="prompt" id="sysPrompt">SYS &gt;</span>
+          <span id="response">All systems nominal. Tap the core to speak or enter a directive below.</span><span class="cursor" aria-hidden="true">_</span>
+        </p>
+      </div>
+
+      <!-- Inline Tactical Command Input -->
+      <form id="cmdForm" class="cmd-form" autocomplete="off">
+        <span class="cmd-prefix">&gt;_</span>
+        <input id="cmdInput" type="text" placeholder="Enter directive or tap core..." aria-label="Enter J.A.R.V.I.S. command" />
+        <button type="submit" class="cmd-send" aria-label="Execute Command">EXEC</button>
+      </form>
+    </section>
+  </main>
+
+  <footer>
+    <span id="footerText">STARK INDUSTRIES // MARK-VII TACTICAL INTERFACE</span>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
