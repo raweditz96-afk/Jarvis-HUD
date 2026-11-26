@@ -771,35 +771,121 @@ async function askWikipedia(topic) {
   finally { resetOnlineStatus(); }
 }
 
-async function askGeminiAI(promptText) {
+/* Rolling multi-turn conversation memory (persists during session) */
+let jarvisChatHistory = [];
+
+async function askGeminiAI(promptText, speakReply = true) {
   const apiKey = localStorage.getItem("jarvisGeminiKey");
   if (!apiKey) {
-    speak("I don't recognize that command yet. Say 'set gemini key' to connect my AI core, or say 'search for " + promptText + "'.");
+    speak("I don't recognize that command yet. Say 'set gemini key' to connect my AI core.");
     return;
   }
+
+  /* Allow resetting conversation context anytime */
+  if (["new chat", "clear chat", "reset conversation"].includes(promptText.toLowerCase().trim())) {
+    jarvisChatHistory = [];
+    speak("Conversation context cleared, sir. Starting a fresh neural thread.");
+    return;
+  }
+
   const mem = getMemory();
-  const trainedFacts = (mem.notes || []).length ? ` Known facts about the user: ${mem.notes.join("; ")}.` : "";
-  statusEl.textContent = "● PROCESSING...";
+  const trainedFacts = (mem.notes || []).length
+    ? ` Known facts about the user: ${mem.notes.join("; ")}.`
+    : "";
+
+  /* Append user message to conversation history (keep last 10 turns) */
+  jarvisChatHistory.push({ role: "user", parts: [{ text: promptText }] });
+  if (jarvisChatHistory.length > 20) jarvisChatHistory = jarvisChatHistory.slice(-20);
+
+  statusEl.textContent = "● THINKING...";
+  const responseEl = $("#response");
+  const logEl = $("#logHistory");
+  if (responseEl) responseEl.textContent = "";
+
   try {
-    const res = await fetchWithTimeout("https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:generateContent", {
-      method: "POST",
-      headers: { "Content-Type": "application/json", "x-goog-api-key": apiKey },
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: `You are J.A.R.V.I.S., Tony Stark's AI with calm British poise and subtle dry wit. Address the user as '${mem.name || "sir"}'.${trainedFacts} Reply in plain spoken text under 40 words with no markdown, asterisks, or emojis.` }] },
-        contents: [{ parts: [{ text: promptText }] }],
-        generationConfig: { maxOutputTokens: 120, temperature: 0.65, thinkingConfig: { thinkingLevel: "MINIMAL" } }
-      })
-    }, 6000);
+    const endpoint = "https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash-lite:streamGenerateContent?alt=sse";
+    const res = await fetchWithTimeout(
+      endpoint,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey
+        },
+        body: JSON.stringify({
+          systemInstruction: {
+            parts: [{
+              text: `You are J.A.R.V.I.S., Tony Stark's AI assistant with calm British poise and subtle dry wit. Address the user as '${mem.name || "sir"}'.${trainedFacts} Give clear, helpful, well-structured answers without markdown asterisks.`
+            }]
+          },
+          contents: jarvisChatHistory,
+          tools: [{ google_search: {} }],
+          generationConfig: {
+            maxOutputTokens: 800,
+            temperature: 0.7
+          }
+        })
+      },
+      15000
+    );
+
     if (!res.ok) {
-      speak([400, 401, 403].includes(res.status) ? "My Gemini API key appears invalid, sir. Say 'set gemini key' to update it." : "Stark servers are temporarily unreachable, sir.");
+      jarvisChatHistory.pop();
+      speak([400, 401, 403].includes(res.status)
+        ? "My Gemini API key appears invalid, sir. Say 'set gemini key' to update it."
+        : "Stark servers are temporarily unreachable, sir.");
       return;
     }
-    const reply = (await res.json())?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
-    speak(reply || "I received an empty transmission from my AI core.");
+
+    /* Stream tokens live into the HUD terminal */
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder("utf-8");
+    let buffer = "";
+    let fullReply = "";
+
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (!line.startsWith("data: ")) continue;
+        const jsonStr = line.slice(6).trim();
+        if (!jsonStr || jsonStr === "[DONE]") continue;
+        try {
+          const parsed = JSON.parse(jsonStr);
+          const chunk = parsed?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+          if (chunk) {
+            fullReply += chunk;
+            if (responseEl) responseEl.textContent = fullReply;
+            if (logEl) logEl.scrollTop = logEl.scrollHeight;
+          }
+        } catch {}
+      }
+    }
+
+    const cleanReply = fullReply.trim() || "I received an empty transmission from my AI core.";
+    jarvisChatHistory.push({ role: "model", parts: [{ text: cleanReply }] });
+
+    /* Speak concise summary (first 2 sentences) so long answers don't talk for 2 minutes */
+    if (speakReply) {
+      const spokenPart = (cleanReply.match(/[^.!?]+[.!?]+/g) || [cleanReply]).slice(0, 2).join(" ").trim();
+      speak(spokenPart);
+      if (responseEl) responseEl.textContent = cleanReply;
+    }
   } catch (err) {
-    speak(err.name === "AbortError" ? "AI core request timed out due to high latency, sir." : "Unable to link with my AI core right now.");
-  } finally { resetOnlineStatus(); }
+    jarvisChatHistory.pop();
+    speak(err.name === "AbortError"
+      ? "AI core request timed out, sir."
+      : "Unable to link with my AI core right now.");
+  } finally {
+    resetOnlineStatus();
+  }
 }
+
 
 /* =========================================================
    7. Local Memory & Built-in Arithmetic
