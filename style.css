@@ -1,0 +1,735 @@
+/* J.A.R.V.I.S — Mark-VII Tactical HUD & Interactive Cyber-Ops Root Terminal */
+:root {
+  color-scheme: dark;
+  --primary: #00d8ff;
+  --primary-bright: #8cf5ff;
+  --primary-soft: #5ce6ff;
+  --primary-dim: rgba(0, 216, 255, 0.28);
+  --glow: rgba(0, 216, 255, 0.58);
+  --glow-soft: rgba(0, 216, 255, 0.16);
+  --panel-bg: rgba(3, 18, 28, 0.74);
+  --text-main: #dcf8ff;
+  --text-muted: #52a4bc;
+  --bg-base: #02090e;
+  --bg-layer:
+    radial-gradient(rgba(0, 216, 255, 0.10) 1px, transparent 1px),
+    linear-gradient(to top, rgba(0, 216, 255, 0.22) 0%, rgba(0, 102, 136, 0.06) 30%, transparent 58%),
+    radial-gradient(ellipse at center, #072636 0%, #031018 56%, #010508 100%);
+  --core-fill: radial-gradient(circle, #082c3f 0%, #010a0f 86%);
+}
+
+body.hack-mode {
+  --primary: #00ff66;
+  --primary-bright: #96ffc0;
+  --primary-soft: #39ff88;
+  --primary-dim: rgba(0, 255, 102, 0.34);
+  --glow: rgba(0, 255, 102, 0.65);
+  --glow-soft: rgba(0, 255, 102, 0.18);
+  --panel-bg: rgba(2, 16, 8, 0.86);
+  --text-main: #c8ffe0;
+  --text-muted: #2fa862;
+  --bg-base: #010804;
+  --bg-layer:
+    repeating-linear-gradient(0deg, rgba(0, 255, 102, 0.04) 0px, rgba(0, 255, 102, 0.04) 1px, transparent 1px, transparent 4px),
+    radial-gradient(rgba(0, 255, 102, 0.12) 1px, transparent 1px),
+    linear-gradient(to top, rgba(0, 255, 102, 0.24) 0%, rgba(0, 120, 45, 0.08) 30%, transparent 60%),
+    radial-gradient(ellipse at center, #052412 0%, #020d06 60%, #010402 100%);
+  --core-fill: radial-gradient(circle, #052412 0%, #010804 85%);
+}
+
+body.stealth-mode {
+  opacity: 0.42;
+  filter: saturate(0.65);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--primary-bright);
+  background-color: var(--bg-base);
+  background-image: var(--bg-layer);
+  background-size: 26px 26px, 100% 100%, 100% 100%;
+  background-repeat: repeat, no-repeat, no-repeat;
+  font-family: "Courier New", ui-monospace, SFMono-Regular, Menlo, monospace;
+  transition: opacity 0.4s ease, filter 0.4s ease;
+}
+
+body.hack-mode {
+  background-size: 100% 4px, 22px 22px, 100% 100%, 100% 100%;
+  background-repeat: repeat, repeat, no-repeat, no-repeat;
+}
+
+/* Holographic Scanlines */
+.hud-scanlines {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 4;
+  background: repeating-linear-gradient(
+    to bottom,
+    transparent 0px,
+    transparent 3px,
+    rgba(0, 216, 255, 0.022) 4px
+  );
+}
+
+/* Corner Brackets */
+.hud-frame {
+  position: fixed;
+  inset: 8px;
+  pointer-events: none;
+  z-index: 5;
+}
+
+.hud-frame .corner {
+  position: absolute;
+  width: 20px;
+  height: 20px;
+  border-color: var(--primary);
+  border-style: solid;
+  opacity: 0.78;
+  box-shadow: 0 0 8px var(--glow-soft);
+}
+
+.hud-frame .tl { top: 0; left: 0; border-width: 2px 0 0 2px; }
+.hud-frame .tr { top: 0; right: 0; border-width: 2px 2px 0 0; }
+.hud-frame .bl { bottom: 0; left: 0; border-width: 0 0 2px 2px; }
+.hud-frame .br { bottom: 0; right: 0; border-width: 0 2px 2px 0; }
+
+/* Top Telemetry Bar (Responsive for Narrow Mobile Screens) */
+.telemetry-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  padding: 12px 14px 6px;
+  font-size: clamp(7.5px, 2.2vw, 9px);
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.telemetry-bar .badge {
+  padding: 2px 5px;
+  border: 1px solid var(--primary-dim);
+  border-radius: 3px;
+  color: var(--primary);
+  background: var(--glow-soft);
+  flex-shrink: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 0 6px var(--glow-soft);
+}
+
+body.hack-mode .telemetry-bar .badge {
+  border-color: #ff3b3b;
+  color: #ff5c5c;
+  background: rgba(255, 40, 40, 0.14);
+}
+
+.telemetry-right {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.telemetry-right .sep {
+  margin: 0 3px;
+  opacity: 0.4;
+}
+
+#glinkStatus.online {
+  color: var(--primary-bright);
+  text-shadow: 0 0 6px var(--glow);
+}
+
+/* Header + Chromatic Glitch Effect in Hack Mode */
+header {
+  padding: 6px 12px 12px;
+  border-bottom: 1px solid var(--primary-dim);
+  text-align: center;
+  position: relative;
+}
+
+header::after {
+  content: "";
+  position: absolute;
+  bottom: -1px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 90px;
+  height: 2px;
+  background: var(--primary);
+  box-shadow: 0 0 10px var(--glow);
+}
+
+.header-sub {
+  font-size: 8.5px;
+  letter-spacing: 2.5px;
+  color: var(--text-muted);
+  margin-bottom: 3px;
+}
+
+header h1 {
+  margin: 0;
+  color: var(--primary);
+  font-size: clamp(20px, 5.4vw, 26px);
+  font-weight: bold;
+  letter-spacing: 6px;
+  padding-left: 6px;
+  text-shadow: 0 0 12px var(--glow);
+}
+
+body.hack-mode header h1 {
+  animation: cyberGlitch 3.5s infinite;
+}
+
+@keyframes cyberGlitch {
+  0%, 92%, 100% { text-shadow: 0 0 12px var(--glow); transform: translate(0); }
+  93% { text-shadow: -2px 0 #ff2a5f, 2px 0 #00e5ff; transform: translate(-1px, 0); }
+  95% { text-shadow: 2px 0 #ff2a5f, -2px 0 #00e5ff; transform: translate(1px, 0); }
+  97% { text-shadow: 0 0 14px var(--glow); transform: translate(0); }
+}
+
+main {
+  width: 100%;
+  padding: 10px 0 14px;
+  text-align: center;
+}
+
+.status-cluster {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.status {
+  margin: 4px 10px 2px;
+  color: var(--primary-soft);
+  font-size: 11px;
+  letter-spacing: 3px;
+  will-change: opacity;
+  animation: blink 2.6s ease-in-out infinite;
+}
+
+.clock {
+  margin: 2px 0 0;
+  color: var(--primary-bright);
+  font-size: 20px;
+  font-weight: bold;
+  letter-spacing: 3.5px;
+  text-shadow: 0 0 10px var(--glow);
+}
+
+.countdown-display {
+  display: none;
+  margin: 6px auto 0;
+  padding: 3px 12px;
+  width: fit-content;
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  background: var(--glow-soft);
+  color: var(--primary-bright);
+  font-size: 11.5px;
+  letter-spacing: 2px;
+  box-shadow: 0 0 10px var(--glow-soft);
+}
+
+.countdown-display.active {
+  display: inline-block;
+}
+
+/* Mark-VII Tactical Arc Reactor Core */
+.core {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 286px;
+  height: 286px;
+  margin: 14px auto 6px;
+  border-radius: 50%;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  color: var(--primary);
+  will-change: transform;
+  transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.4s ease;
+}
+
+body.booting .core {
+  transform: scale(0.84);
+  opacity: 0.3;
+}
+
+.core:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 8px;
+}
+
+.core:active {
+  transform: scale(0.96);
+}
+
+.hud-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  pointer-events: none;
+  filter: drop-shadow(0 0 7px var(--glow-soft));
+}
+
+.svg-ring-outer,
+.svg-ring-mid,
+.svg-ring-inner {
+  transform-origin: 140px 140px;
+  will-change: transform;
+}
+
+.svg-ring-outer { animation: spinSlow 18s linear infinite; }
+.svg-ring-mid { animation: spinReverse 24s linear infinite; }
+.svg-ring-inner { animation: spinSlow 12s linear infinite; }
+
+.core.scanning .svg-ring-outer { animation-duration: 1.3s; }
+.core.scanning .svg-ring-mid { animation-duration: 1.7s; }
+.core.scanning .svg-ring-inner { animation-duration: 1s; }
+
+.inner {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  width: 112px;
+  height: 112px;
+  border-radius: 50%;
+  border: 1px solid var(--primary-dim);
+  background: var(--core-fill);
+  box-shadow: inset 0 0 18px var(--glow-soft), 0 0 14px var(--glow-soft);
+  color: var(--primary-bright);
+  text-shadow: 0 0 8px var(--glow);
+}
+
+#coreLabel {
+  font-size: 11.5px;
+  font-weight: bold;
+  letter-spacing: 2px;
+  padding-left: 2px;
+}
+
+.core-sub {
+  font-size: 7.5px;
+  letter-spacing: 1.4px;
+  color: var(--text-muted);
+  opacity: 0.85;
+}
+
+.core.listening {
+  color: var(--primary-bright);
+}
+.core.listening .inner {
+  border-color: var(--primary-bright);
+  box-shadow: inset 0 0 24px var(--glow), 0 0 22px var(--glow);
+}
+.core.listening .svg-ring-outer { animation-duration: 4.5s; }
+.core.listening .svg-ring-mid { animation-duration: 6.5s; }
+.core.listening .svg-ring-inner { animation-duration: 3s; }
+
+.core.speaking .svg-ring-outer { animation-duration: 3.8s; }
+.core.speaking .svg-ring-inner { animation-duration: 2.2s; }
+
+/* Compact Live Audio Visualizer Canvas */
+.visualizer-wrap {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 20px;
+  margin: 2px auto 10px;
+}
+
+#audioVisualizer {
+  width: 140px;
+  height: 20px;
+  display: block;
+}
+
+/* =========================================================
+   Interactive Cyber-Ops Root Terminal (Hack Mode Only)
+   ========================================================= */
+.hack-terminal {
+  display: none;
+  width: min(92%, 620px);
+  margin: 6px auto 12px;
+  padding: 11px 13px;
+  border: 1px solid rgba(0, 255, 102, 0.45);
+  border-left: 3px solid #00ff66;
+  border-radius: 6px;
+  background: rgba(1, 12, 6, 0.92);
+  box-shadow: 0 0 20px rgba(0, 255, 102, 0.16);
+  text-align: left;
+}
+
+body.hack-mode .hack-terminal {
+  display: block;
+}
+
+.term-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 6px;
+  padding-bottom: 7px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 255, 102, 0.28);
+  font-size: 9.5px;
+  letter-spacing: 0.8px;
+}
+
+.term-title {
+  color: #39ff88;
+  font-weight: bold;
+}
+
+.trace-badge {
+  padding: 2px 6px;
+  border: 1px solid rgba(0, 255, 102, 0.4);
+  border-radius: 3px;
+  color: #96ffc0;
+  background: rgba(0, 255, 102, 0.1);
+  flex-shrink: 0;
+}
+
+.trace-badge.danger {
+  border-color: #ff3b3b;
+  color: #ff6b6b;
+  background: rgba(255, 40, 40, 0.18);
+  animation: blink 0.7s infinite;
+}
+
+.trace-alert {
+  display: none;
+  margin-bottom: 8px;
+  padding: 6px 9px;
+  border: 1px solid #ff3b3b;
+  border-radius: 4px;
+  background: rgba(255, 30, 30, 0.18);
+  color: #ff8080;
+  font-size: 10.5px;
+  font-weight: bold;
+  letter-spacing: 0.8px;
+  animation: blink 0.8s infinite;
+}
+
+.trace-alert.active {
+  display: block;
+}
+
+.term-output {
+  max-height: 165px;
+  overflow-y: auto;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: #96ffc0;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(0, 255, 102, 0.35) transparent;
+}
+
+.term-line {
+  margin: 3px 0;
+  overflow-wrap: anywhere;
+}
+
+.term-line.cmd {
+  color: #ffffff;
+  font-weight: bold;
+}
+
+.term-line.warn {
+  color: #ff6b6b;
+}
+
+.term-line.accent {
+  color: #00e5ff;
+}
+
+.term-form {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(0, 255, 102, 0.28);
+}
+
+.term-prompt {
+  color: #ff5c5c;
+  font-size: 11px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+#termInput {
+  flex: 1;
+  min-width: 0;
+  background: rgba(0, 20, 10, 0.8);
+  border: 1px solid rgba(0, 255, 102, 0.35);
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: #96ffc0;
+  font-family: inherit;
+  font-size: 12px;
+  outline: none;
+}
+
+#termInput:focus {
+  border-color: #00ff66;
+  box-shadow: 0 0 8px rgba(0, 255, 102, 0.25);
+}
+
+.term-run {
+  background: rgba(0, 255, 102, 0.16);
+  border: 1px solid #00ff66;
+  border-radius: 4px;
+  padding: 6px 10px;
+  color: #96ffc0;
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.term-run:active {
+  transform: scale(0.95);
+}
+
+/* Holographic Terminal Feed + Inline Command Input */
+.panel {
+  width: min(92%, 620px);
+  margin: 6px auto 10px;
+  padding: 13px 15px 12px;
+  border: 1px solid var(--primary-dim);
+  border-left: 3px solid var(--primary);
+  border-radius: 6px;
+  background: var(--panel-bg);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  box-shadow: 0 0 18px var(--glow-soft);
+  text-align: left;
+  position: relative;
+}
+
+.panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--primary-dim);
+}
+
+.panel-title-wrap {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.panel-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 8px var(--glow);
+}
+
+.panel-header h2 {
+  margin: 0;
+  color: var(--primary);
+  font-size: 11.5px;
+  letter-spacing: 2.5px;
+}
+
+.voice-tag {
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  padding: 2px 6px;
+  border: 1px solid var(--primary-dim);
+  border-radius: 3px;
+  color: var(--text-muted);
+}
+
+.log-history {
+  max-height: 145px;
+  overflow-y: auto;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--primary-dim) transparent;
+}
+
+.log-line {
+  margin: 7px 0;
+  color: var(--text-main);
+  font-size: 13.5px;
+  line-height: 1.45;
+  overflow-wrap: anywhere;
+}
+
+.response-line {
+  cursor: pointer;
+}
+
+.prompt {
+  color: var(--primary);
+  font-weight: bold;
+  margin-right: 6px;
+}
+
+.cursor {
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--primary-bright);
+  animation: blink 1s steps(2, start) infinite;
+}
+
+/* Inline Directive Input Bar */
+.cmd-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  padding-top: 9px;
+  border-top: 1px solid var(--primary-dim);
+}
+
+.cmd-prefix {
+  color: var(--primary);
+  font-size: 12px;
+  font-weight: bold;
+  flex-shrink: 0;
+}
+
+#cmdInput {
+  flex: 1;
+  min-width: 0;
+  background: rgba(0, 12, 20, 0.65);
+  border: 1px solid var(--primary-dim);
+  border-radius: 4px;
+  padding: 7px 10px;
+  color: var(--primary-bright);
+  font-family: inherit;
+  font-size: 13px;
+  outline: none;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+#cmdInput::placeholder {
+  color: var(--text-muted);
+  opacity: 0.7;
+}
+
+#cmdInput:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 8px var(--glow-soft);
+}
+
+.cmd-send {
+  background: var(--glow-soft);
+  border: 1px solid var(--primary);
+  border-radius: 4px;
+  padding: 7px 11px;
+  color: var(--primary-bright);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: bold;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.2s ease, transform 0.1s ease;
+}
+
+.cmd-send:active {
+  transform: scale(0.95);
+  background: var(--primary-dim);
+}
+
+footer {
+  padding: 14px 12px 18px;
+  color: var(--text-muted);
+  font-size: 9.5px;
+  letter-spacing: 2px;
+  text-align: center;
+}
+
+body.paused *,
+body.paused *::before,
+body.paused *::after {
+  animation-play-state: paused !important;
+}
+
+@keyframes spinSlow { to { transform: rotate(360deg); } }
+@keyframes spinReverse { from { transform: rotate(360deg); } to { transform: rotate(0deg); } }
+@keyframes blink { 50% { opacity: 0.35; } }
+
+@media (max-width: 480px) {
+  .core { width: 258px; height: 258px; margin: 12px auto 6px; }
+  .inner { width: 102px; height: 102px; }
+  #coreLabel { font-size: 10.5px; letter-spacing: 1.5px; }
+  .core-sub { font-size: 7px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}
+
+
+/* Offline Knowledge Center */
+.knowledge-panel { margin-top: 14px; }
+.knowledge-help { margin: 0 0 10px; color: var(--text-muted); font-size: 11px; line-height: 1.5; }
+.knowledge-file-input { position: absolute; width: 1px; height: 1px; opacity: 0; overflow: hidden; }
+.knowledge-file-label, .knowledge-action {
+  display: inline-flex; align-items: center; justify-content: center; min-height: 34px;
+  padding: 7px 11px; border: 1px solid var(--primary); border-radius: 4px;
+  background: var(--glow-soft); color: var(--primary-bright); font: bold 10px "Courier New", monospace;
+  letter-spacing: 1px; cursor: pointer;
+}
+.knowledge-file-label { width: 100%; margin-bottom: 9px; }
+.knowledge-note, #knowledgeSearch {
+  width: 100%; min-width: 0; border: 1px solid var(--primary-dim); border-radius: 4px;
+  background: rgba(0, 12, 20, .72); color: var(--text-main); padding: 9px;
+  font: 12px/1.5 "Courier New", monospace; outline: none;
+}
+.knowledge-note { resize: vertical; }
+.knowledge-note:focus, #knowledgeSearch:focus { border-color: var(--primary); }
+#saveKnowledgeNote { width: 100%; margin: 7px 0 10px; }
+.knowledge-search-row { display: flex; gap: 7px; }
+.knowledge-search-row #knowledgeSearch { flex: 1; }
+.knowledge-search-row .knowledge-action { flex-shrink: 0; }
+.knowledge-results { margin-top: 10px; padding: 9px; border: 1px solid var(--primary-dim); border-radius: 4px; color: var(--text-main); font-size: 11px; line-height: 1.55; overflow-wrap: anywhere; white-space: pre-wrap; }
+.knowledge-result { padding: 7px 0; border-bottom: 1px solid var(--primary-dim); }
+.knowledge-result:last-child { border-bottom: 0; }
+.knowledge-source { color: var(--primary); font-size: 10px; margin-bottom: 3px; }
+.knowledge-list-heading { display: flex; justify-content: space-between; margin-top: 13px; padding-bottom: 6px; color: var(--text-muted); font-size: 9px; letter-spacing: 1.5px; border-bottom: 1px solid var(--primary-dim); }
+.knowledge-documents { max-height: 145px; overflow-y: auto; }
+.knowledge-document { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 8px 0; border-bottom: 1px solid var(--primary-dim); color: var(--text-main); font-size: 10px; }
+.knowledge-document-name { min-width: 0; overflow-wrap: anywhere; }
+.knowledge-delete { flex-shrink: 0; border: 1px solid rgba(255,80,80,.55); border-radius: 3px; padding: 4px 7px; background: transparent; color: #ff7777; font: 10px "Courier New", monospace; }
+body.hack-mode .knowledge-file-label, body.hack-mode .knowledge-action { border-color: #ff4545; color: #ff7777; background: rgba(255,50,50,.1); }
+body.hack-mode .knowledge-note, body.hack-mode #knowledgeSearch { border-color: rgba(255,70,70,.4); }
